@@ -70,14 +70,14 @@ jobs:
           unzip -tq "$APK"
           BUILD_TOOLS="$(ls -1 "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
-          cp "$APK" DroidDesk-Enhanced-Linux-Fixed-v1.0.2.apk
-          sha256sum DroidDesk-Enhanced-Linux-Fixed-v1.0.2.apk > DroidDesk-Enhanced-Linux-Fixed-v1.0.2.sha256
+          cp "$APK" DroidDesk-Enhanced-Linux-Fixed-v1.0.3.apk
+          sha256sum DroidDesk-Enhanced-Linux-Fixed-v1.0.3.apk > DroidDesk-Enhanced-Linux-Fixed-v1.0.3.sha256
 
       - name: Commit APK to desk
         run: |
           set -euxo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add DroidDesk-Enhanced-Linux-Fixed-v1.0.2.apk DroidDesk-Enhanced-Linux-Fixed-v1.0.2.sha256
-          git commit -m "Add fixed DroidDesk Enhanced Linux APK"
+          git add DroidDesk-Enhanced-Linux-Fixed-v1.0.3.apk DroidDesk-Enhanced-Linux-Fixed-v1.0.3.sha256
+          git commit -m "Add X11-fixed DroidDesk Enhanced Linux APK"
           git push origin HEAD:main
