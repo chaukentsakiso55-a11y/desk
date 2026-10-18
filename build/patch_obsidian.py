@@ -75,9 +75,6 @@ replace_all(
         ("Color(0xFF151D2B)", "Color(0xFF0E1426)"),
         ("Color(0xFF6366F1)", "Color(0xFF7C3AED)"),
         ("Color(0xFF818CF8)", "Color(0xFFA78BFA)"),
-        ("colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)]", "colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)]"),
-        ("colors: [Color(0xFF0A0E17), Color(0xFF0F1729)]", "colors: [Color(0xFF05070D), Color(0xFF0A1020)]"),
-        ("colors: [Color(0xFF151D2B), Color(0xFF111827)]", "colors: [Color(0xFF0E1426), Color(0xFF0B1020)]"),
     ],
 )
 
