@@ -74,8 +74,8 @@ jobs:
           unzip -tq "$APK"
           BUILD_TOOLS="$(ls -1 "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
-          cp "$APK" DroidDesk-Enhanced-Linux-Fixed-v1.0.4.apk
-          sha256sum DroidDesk-Enhanced-Linux-Fixed-v1.0.4.apk > DroidDesk-Enhanced-Linux-Fixed-v1.0.4.sha256
+          cp "$APK" DroidDesk-Enhanced-Linux-Fixed-v1.0.5.apk
+          sha256sum DroidDesk-Enhanced-Linux-Fixed-v1.0.5.apk > DroidDesk-Enhanced-Linux-Fixed-v1.0.5.sha256
 
       - name: Commit APK to desk
         run: |
@@ -83,6 +83,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main
-          git add DroidDesk-Enhanced-Linux-Fixed-v1.0.4.apk DroidDesk-Enhanced-Linux-Fixed-v1.0.4.sha256
-          git commit -m "Add MATE-fixed DroidDesk Enhanced Linux APK"
+          git add DroidDesk-Enhanced-Linux-Fixed-v1.0.5.apk DroidDesk-Enhanced-Linux-Fixed-v1.0.5.sha256
+          git commit -m "Add black-screen-fixed DroidDesk Enhanced Linux APK"
           git push origin HEAD:main
