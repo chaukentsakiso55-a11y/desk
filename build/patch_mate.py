@@ -15,7 +15,7 @@ def replace_once(path, old, new):
 replace_once(
     "app/pubspec.yaml",
     "version: 1.0.3+103\n",
-    "version: 1.0.4+104\n",
+    "version: 1.0.5+105\n",
 )
 
 replace_once(
@@ -61,7 +61,7 @@ replace_once(
     '''    /** Relocate commands that MATE/GLib compiled as absolute Termux paths. */
     private fun patchEmbeddedMatePaths() {
         val oldLauncher = "/data/data/com.termux/files/usr/libexec/gio-launch-desktop"
-        val launcherName = "gio-launch-desktop"
+        val launcherName = "../usr/libexec/gio-launch-desktop"
         listOf(
             File(prefixDir, "lib"),
             File(prefixDir, "libexec"),
@@ -138,6 +138,63 @@ replace_once(
             patchEmbeddedMatePaths()
         }
         marker.writeText(selectedDesktop)
+''',
+)
+
+replace_once(
+    "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/runtime/LinuxRuntime.kt",
+    '''        val desktopCommand = when (selectedDesktop) {
+            "lxqt" -> "startlxqt"
+            "mate" -> "mate-session"
+            "kde" -> "startplasma-x11"
+''',
+    '''        val desktopCommand = when (selectedDesktop) {
+            "lxqt" -> "startlxqt"
+            "mate" -> "mate-settings-daemon >/dev/null 2>&1 & marco --replace >/dev/null 2>&1 & caja --no-default-window >/dev/null 2>&1 & exec mate-panel"
+            "kde" -> "startplasma-x11"
+''',
+)
+
+replace_once(
+    "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/runtime/LinuxRuntime.kt",
+    '''        val processes = when (normalizedDesktop(desktopEnv)) {
+            "lxqt" -> listOf("lxqt-session", "lxqt-panel")
+            "mate" -> listOf("mate-session", "mate-panel")
+            "kde" -> listOf("plasmashell")
+''',
+    '''        val processes = when (normalizedDesktop(desktopEnv)) {
+            "lxqt" -> listOf("lxqt-session", "lxqt-panel")
+            "mate" -> listOf("marco", "mate-panel")
+            "kde" -> listOf("plasmashell")
+''',
+)
+
+replace_once(
+    "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/view/DesktopActivity.kt",
+    '''            desktopRevealed = true
+            loadingMessageHandler.removeCallbacks(loadingMessageTicker)
+            loadingMessageHandler.removeCallbacks(loadingEstimateTicker)
+            if (!ready) Log.w(TAG, "Revealing desktop after readiness timeout")
+            Log.i(TAG, "Desktop revealed ready=$ready")
+''',
+    '''            if (!ready) {
+                loadingMessageHandler.removeCallbacks(loadingMessageTicker)
+                loadingMessageHandler.removeCallbacks(loadingEstimateTicker)
+                loadingStatus?.text = "Linux desktop failed to start"
+                loadingEstimate?.text = "Returning to DroidDesk so you can retry"
+                Log.e(TAG, "Desktop readiness timed out; refusing to reveal an empty X11 canvas")
+                Toast.makeText(
+                    this,
+                    "Desktop failed to start. DroidDesk returned instead of showing a black screen.",
+                    Toast.LENGTH_LONG,
+                ).show()
+                loadingMessageHandler.postDelayed({ finish() }, 1_800)
+                return@runOnUiThread
+            }
+            desktopRevealed = true
+            loadingMessageHandler.removeCallbacks(loadingMessageTicker)
+            loadingMessageHandler.removeCallbacks(loadingEstimateTicker)
+            Log.i(TAG, "Desktop revealed ready=true")
 ''',
 )
 
