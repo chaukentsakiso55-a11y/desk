@@ -91,9 +91,9 @@ for old, new in [
     ("'Return to Desktop'", "'Return to Obsidian'"),
     ("'Launch Desktop'", "'Enter Obsidian'"),
     ("'Shutdown Linux environment'", "'Stop Obsidian runtime'"),
-    ("'Start \${state.selectedDE.toUpperCase()} desktop environment'", "'Start the Obsidian desktop environment'"),
+    ("'Start ${state.selectedDE.toUpperCase()} desktop environment'", "'Start the Obsidian desktop environment'"),
     ("title: 'Terminal',", "title: 'Obsidian Terminal',"),
-    ("'Open a Linux shell in the \${state.hasRoot ? 'Ubuntu chroot' : 'native Termux'} environment'", "'Open the local Obsidian command environment'"),
+    ("'Open a Linux shell in the ${state.hasRoot ? 'Ubuntu chroot' : 'native Termux'} environment'", "'Open the local Obsidian command environment'"),
     ("title: 'Add applications',", "title: 'Obsidian App Center',"),
     ("'Install applications or optional Debian compatibility'", "'Install desktop tools and compatibility packages'"),
     ("'SYSTEM'", "'OBSIDIAN CORE'"),
@@ -154,7 +154,7 @@ replace_all(
         ('private const val PROFILE_MARKER = ".droiddesk-xfce-mobile-v5"', 'private const val PROFILE_MARKER = ".obsidian-xfce-mobile-v1"'),
         ('name = "Terminal"', 'name = "Obsidian Terminal"'),
         ('comment = "Open the Linux terminal"', 'comment = "Open the Obsidian command environment"'),
-        ('Log.i(TAG, "Installed Ubuntu-inspired XFCE mobile profile in \${homeDir.absolutePath}")', 'Log.i(TAG, "Installed Obsidian XFCE profile in \${homeDir.absolutePath}")'),
+        ('Log.i(TAG, "Installed Ubuntu-inspired XFCE mobile profile in ${homeDir.absolutePath}")', 'Log.i(TAG, "Installed Obsidian XFCE profile in ${homeDir.absolutePath}")'),
     ],
 )
 
@@ -174,7 +174,7 @@ class ObsidianSecurityScreen extends StatelessWidget {
     final runtimeMode = state.hasRoot ? 'Elevated chroot' : 'Android app sandbox';
     final runtimeStatus = state.isRunning ? 'Active' : 'Standby';
     final deviceName =
-        '\${device['brand'] ?? ''} \${device['model'] ?? ''}'.trim();
+        '${device['brand'] ?? ''} ${device['model'] ?? ''}'.trim();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Obsidian Security Center')),
