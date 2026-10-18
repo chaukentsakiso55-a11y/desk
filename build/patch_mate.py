@@ -29,15 +29,15 @@ replace_once(
 replace_once(
     "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/runtime/LinuxRuntime.kt",
     '''        env["PATH"] = listOf(
-            "\${prefixDir.absolutePath}/bin",
-            "\${prefixDir.absolutePath}/lib/xfce4/panel",
+            "${prefixDir.absolutePath}/bin",
+            "${prefixDir.absolutePath}/lib/xfce4/panel",
             System.getenv("PATH") ?: "/system/bin",
         ).joinToString(":")
 ''',
     '''        env["PATH"] = listOf(
-            "\${prefixDir.absolutePath}/bin",
-            "\${prefixDir.absolutePath}/libexec",
-            "\${prefixDir.absolutePath}/lib/xfce4/panel",
+            "${prefixDir.absolutePath}/bin",
+            "${prefixDir.absolutePath}/libexec",
+            "${prefixDir.absolutePath}/lib/xfce4/panel",
             System.getenv("PATH") ?: "/system/bin",
         ).joinToString(":")
 ''',
@@ -45,10 +45,10 @@ replace_once(
 
 replace_once(
     "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/runtime/LinuxRuntime.kt",
-    '''        env["XDG_DATA_DIRS"] = "\${prefixDir.absolutePath}/share"
+    '''        env["XDG_DATA_DIRS"] = "${prefixDir.absolutePath}/share"
 ''',
-    '''        env["XDG_DATA_DIRS"] = "\${prefixDir.absolutePath}/share"
-        env["GIO_EXTRA_MODULES"] = "\${prefixDir.absolutePath}/lib/gio/modules"
+    '''        env["XDG_DATA_DIRS"] = "${prefixDir.absolutePath}/share"
+        env["GIO_EXTRA_MODULES"] = "${prefixDir.absolutePath}/lib/gio/modules"
         env["GVFS_DISABLE_FUSE"] = "1"
 ''',
 )
@@ -83,7 +83,7 @@ replace_once(
                     runCatching {
                         patchEmbeddedCommand(file, oldLauncher, launcherName)
                     }.onFailure { error ->
-                        Log.w(TAG, "Could not relocate MATE command in \${file.name}: \${error.message}")
+                        Log.w(TAG, "Could not relocate MATE command in ${file.name}: ${error.message}")
                     }
                 }
         }
