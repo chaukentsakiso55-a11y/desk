@@ -57,6 +57,10 @@ jobs:
         run: |
           python3 build/patch_next.py /tmp/droiddesk-next
 
+      - name: Apply startup loop fixes
+        run: |
+          python3 build/patch_startup_v201.py /tmp/droiddesk-next
+
       - name: Replace JetBrains Mono assets
         run: |
           set -euxo pipefail
@@ -86,8 +90,8 @@ jobs:
           unzip -tq "$APK"
           BUILD_TOOLS="$(ls -1 "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
-          cp "$APK" DroidDesk-Next-v2.0.0.apk
-          sha256sum DroidDesk-Next-v2.0.0.apk > DroidDesk-Next-v2.0.0.sha256
+          cp "$APK" DroidDesk-Next-v2.0.1.apk
+          sha256sum DroidDesk-Next-v2.0.1.apk > DroidDesk-Next-v2.0.1.sha256
 
       - name: Publish DroidDesk Next
         run: |
@@ -95,6 +99,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin droiddesk-next
-          git add DroidDesk-Next-v2.0.0.apk DroidDesk-Next-v2.0.0.sha256
-          git commit -m "Add DroidDesk Next v2.0.0 APK"
+          git add DroidDesk-Next-v2.0.1.apk DroidDesk-Next-v2.0.1.sha256
+          git commit -m "Add DroidDesk Next v2.0.1 APK"
           git push origin HEAD:droiddesk-next
