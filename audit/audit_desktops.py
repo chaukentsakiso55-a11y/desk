@@ -23,7 +23,7 @@ DESKTOPS = {
     "kde": ["plasma-desktop", "konsole", "dolphin"],
 }
 
-COMMON = ["xorg-xrandr", "pulseaudio", "xclip", "git", "wget", "curl", "openssh", "htop", "python", "clang", "mesa-zink"]
+COMMON = ["xorg-xrandr", "pulseaudio", "xclip", "xkeyboard-config", "git", "wget", "curl", "openssh", "htop", "python", "clang", "mesa"]
 KEY_RUNTIME = {
     "xfce4": ["xfce4-session", "xfce4-panel", "xfdesktop", "xfwm4"],
     "mate": ["mate-session-manager", "mate-panel", "marco", "caja"],
@@ -87,6 +87,12 @@ for de, roots in DESKTOPS.items():
     for p in roots + COMMON + KEY_RUNTIME[de]:
         if p not in packages:
             missing.append((de, p))
+
+gpu_candidates = sorted(
+    p for p in packages
+    if "freedreno" in p or "vulkan-loader" in p or p.startswith("mesa-vulkan")
+)
+print("GPU CANDIDATES:", gpu_candidates)
 
 if missing:
     print("MISSING PACKAGES:", missing)
