@@ -6,8 +6,14 @@ import re
 import urllib.request
 
 SOURCES = [
-    "https://packages-cf.termux.dev/apt/termux-main/dists/stable/main/binary-aarch64/Packages.gz",
-    "https://packages-cf.termux.dev/apt/termux-x11/dists/x11/main/binary-aarch64/Packages.gz",
+    [
+        "https://packages.termux.dev/apt/termux-main/dists/stable/main/binary-aarch64/Packages.gz",
+        "https://packages-cf.termux.dev/apt/termux-main/dists/stable/main/binary-aarch64/Packages.gz",
+    ],
+    [
+        "https://packages.termux.dev/apt/termux-x11/dists/x11/main/binary-aarch64/Packages.gz",
+        "https://packages-cf.termux.dev/apt/termux-x11/dists/x11/main/binary-aarch64/Packages.gz",
+    ],
 ]
 
 DESKTOPS = {
@@ -25,11 +31,22 @@ KEY_RUNTIME = {
     "kde": ["plasma-workspace", "kwin-x11", "plasma-desktop"],
 }
 
-def fetch(url):
-    print("FETCH", url, flush=True)
-    with urllib.request.urlopen(url, timeout=60) as r:
-        data = r.read()
-    return gzip.decompress(data).decode("utf-8", "replace")
+def fetch(urls):
+    last = None
+    for url in urls:
+        print("FETCH", url, flush=True)
+        try:
+            request = urllib.request.Request(
+                url,
+                headers={"User-Agent": "DroidDesk-Audit/2.0.1"},
+            )
+            with urllib.request.urlopen(request, timeout=60) as r:
+                data = r.read()
+            return gzip.decompress(data).decode("utf-8", "replace")
+        except Exception as error:
+            print("FETCH FAILED", type(error).__name__, error, flush=True)
+            last = error
+    raise last
 
 def parse(text):
     pkgs = {}
@@ -62,8 +79,8 @@ def dep_names(expr):
     return result
 
 packages = {}
-for url in SOURCES:
-    packages.update(parse(fetch(url)))
+for urls in SOURCES:
+    packages.update(parse(fetch(urls)))
 
 missing = []
 for de, roots in DESKTOPS.items():
