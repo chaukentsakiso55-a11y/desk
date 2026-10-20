@@ -157,7 +157,7 @@ replace_once(
 ''',
     '''        Log.i(TAG, "Starting native Termux session for $selectedDesktop")
         desktopStartupLogFile().writeText(
-            "DroidDesk desktop startup\nDesktop=$selectedDesktop\nGraphics=${getGraphicsMode()}\n"
+            "DroidDesk desktop startup\\nDesktop=$selectedDesktop\\nGraphics=${getGraphicsMode()}\\n"
         )
 
         val bashBin = File(prefixDir, "bin/bash").absolutePath
@@ -203,7 +203,7 @@ replace_once(
                 runCatching {
                     if (!startedSession.isAlive) {
                         desktopStartupLogFile().appendText(
-                            "\n[desktop process exited code=${startedSession.exitValue()}]\n"
+                            "\\n[desktop process exited code=${startedSession.exitValue()}]\\n"
                         )
                     }
                 }
