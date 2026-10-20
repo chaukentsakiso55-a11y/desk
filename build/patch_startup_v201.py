@@ -81,9 +81,17 @@ replace_once(
 
 replace_once(
     "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/MainActivity.kt",
-    '''                                    putExtra("de", desktopEnv)
+    '''                                val intent = Intent(this@MainActivity, com.orailnoor.droiddesk.view.DesktopActivity::class.java).apply {
+                                    putExtra("startSession", !linuxRuntime.isRunning())
+                                    putExtra("mode", "termux")
+                                    putExtra("de", desktopEnv)
+                                }
 ''',
-    '''                                    putExtra("de", chosenDesktop)
+    '''                                val intent = Intent(this@MainActivity, com.orailnoor.droiddesk.view.DesktopActivity::class.java).apply {
+                                    putExtra("startSession", !linuxRuntime.isRunning())
+                                    putExtra("mode", "termux")
+                                    putExtra("de", chosenDesktop)
+                                }
 ''',
 )
 
