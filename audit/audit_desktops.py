@@ -148,3 +148,56 @@ assert "plasma-workspace" in closure(DESKTOPS["kde"] + COMMON)
 assert "kwin-x11" in closure(DESKTOPS["kde"] + COMMON)
 
 print("ALL_DESKTOP_PACKAGE_GRAPHS_OK")
+
+
+# Verify the exact desktop launch commands against current package archives.
+REPO_BASE = {
+    "main": "https://packages.termux.dev/apt/termux-main/",
+    "x11": "https://packages.termux.dev/apt/termux-x11/",
+}
+BINARIES = {
+    "xfce4-session": ["bin/xfce4-session"],
+    "mate-session-manager": ["bin/mate-session"],
+    "lxqt-session": ["bin/startlxqt"],
+    "plasma-workspace": ["bin/startplasma-x11", "bin/plasmashell"],
+    "kwin-x11": ["bin/kwin_x11"],
+}
+
+import os
+import subprocess
+import tempfile
+
+def download_pkg(name):
+    meta = packages[name]
+    filename = meta.get("Filename")
+    if not filename:
+        raise RuntimeError(f"No Filename field for {name}")
+    repo = "x11" if name in {
+        "xfce4-session", "mate-session-manager", "lxqt-session",
+        "plasma-workspace", "kwin-x11"
+    } else "main"
+    url = REPO_BASE[repo] + filename
+    request = urllib.request.Request(url, headers={"User-Agent": "DroidDesk-Audit/2.0.1"})
+    with urllib.request.urlopen(request, timeout=120) as r:
+        data = r.read()
+    fd, path = tempfile.mkstemp(suffix=".deb")
+    os.close(fd)
+    with open(path, "wb") as out:
+        out.write(data)
+    return path
+
+binary_report = {}
+for pkg, expected in BINARIES.items():
+    path = download_pkg(pkg)
+    try:
+        listing = subprocess.check_output(["dpkg-deb", "-c", path], text=True, errors="replace")
+    finally:
+        os.unlink(path)
+    missing_bins = [b for b in expected if f"/{b}" not in listing]
+    binary_report[pkg] = {"expected": expected, "missing": missing_bins}
+    if missing_bins:
+        print("MISSING BINARIES", pkg, missing_bins)
+        raise SystemExit(3)
+
+print("BINARY_REPORT", json.dumps(binary_report, indent=2))
+print("ALL_DESKTOP_START_COMMANDS_OK")
