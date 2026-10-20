@@ -23,14 +23,19 @@ def regex_once(path, pattern, repl):
 
 replace_once("app/pubspec.yaml", "version: 2.0.0+200\n", "version: 2.0.1+201\n")
 
-regex_once(
+replace_once(
     "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/runtime/NextManager.kt",
-    r'"export DROIDDESK_PERFORMANCE_MODE=\$mode\\\\n" \+\n\s*"export OMP_NUM_THREADS=\$threads\\\\n" \+\n\s*"export PULSE_LATENCY_MSEC=\$latency\\\\n" \+\n\s*"ulimit -v .*?\\\\n"',
-    '"export DROIDDESK_PERFORMANCE_MODE=$mode\\\\n" +\\n'
-    '            "export OMP_NUM_THREADS=$threads\\\\n" +\\n'
-    '            "export PULSE_LATENCY_MSEC=$latency\\\\n" +\\n'
-    '            "export DROIDDESK_MEMORY_TARGET_MB=$memoryLimitMB\\\\n" +\\n'
-    '            "export MALLOC_ARENA_MAX=2\\\\n"',
+    """            "export DROIDDESK_PERFORMANCE_MODE=$mode\\n" +
+            "export OMP_NUM_THREADS=$threads\\n" +
+            "export PULSE_LATENCY_MSEC=$latency\\n" +
+            "ulimit -v ${memoryLimitMB * 1024} 2>/dev/null || true\\n"
+""",
+    """            "export DROIDDESK_PERFORMANCE_MODE=$mode\\n" +
+            "export OMP_NUM_THREADS=$threads\\n" +
+            "export PULSE_LATENCY_MSEC=$latency\\n" +
+            "export DROIDDESK_MEMORY_TARGET_MB=$memoryLimitMB\\n" +
+            "export MALLOC_ARENA_MAX=2\\n"
+""",
 )
 
 replace_once(
