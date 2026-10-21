@@ -7,7 +7,7 @@ def replace_once(path, old, new):
     p = root / path
     text = p.read_text(encoding="utf-8")
     if old not in text:
-        raise SystemExit(f"Expected block not found in {path}")
+        raise SystemExit(f"Expected block not found in {path}: {old[:120]!r}")
     if text.count(old) != 1:
         raise SystemExit(f"Expected exactly one match in {path}, found {text.count(old)}")
     p.write_text(text.replace(old, new, 1), encoding="utf-8")
