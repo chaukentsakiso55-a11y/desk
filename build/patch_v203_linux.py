@@ -284,12 +284,12 @@ insert_before(
 )
 replace_once(
     "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/runtime/LinuxRuntime.kt",
-    '''            echo "DIAG: Launching ${'$'}desktopCommand natively on DISPLAY=:0 ..."
-            exec ${'$'}desktopCommand
+    '''            echo "DIAG: Launching $desktopCommand natively on DISPLAY=:0 ..."
+            exec $desktopCommand
 ''',
-    '''            ${'$'}desktopPreparation
-            echo "DIAG: Launching ${'$'}desktopCommand natively on DISPLAY=:0 ..."
-            exec ${'$'}desktopCommand
+    '''            $desktopPreparation
+            echo "DIAG: Launching $desktopCommand natively on DISPLAY=:0 ..."
+            exec $desktopCommand
 ''',
 )
 replace_once(
