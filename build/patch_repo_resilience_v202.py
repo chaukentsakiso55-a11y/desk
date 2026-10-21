@@ -101,7 +101,7 @@ repo_block = r'''    private fun writeCoreRepositorySources(useCloudflare: Boole
         File(sourcesDir, "tur.list").delete()
 
         File(aptDir, "sources.list").writeText(
-            "deb https://packages.termux.dev/apt/termux-main stable main\\n",
+            "deb https://packages.termux.dev/apt/termux-main stable main\n",
         )
         val firstUpdate = executeCommand(
             "timeout --signal=TERM --kill-after=5s 120s " +
@@ -109,7 +109,7 @@ repo_block = r'''    private fun writeCoreRepositorySources(useCloudflare: Boole
         )
         if (firstUpdate.startsWith("Error:")) {
             File(aptDir, "sources.list").writeText(
-                "deb https://packages-cf.termux.dev/apt/termux-main stable main\\n",
+                "deb https://packages-cf.termux.dev/apt/termux-main stable main\n",
             )
             val fallback = executeCommand(
                 "timeout --signal=TERM --kill-after=5s 120s " +
