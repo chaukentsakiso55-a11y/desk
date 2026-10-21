@@ -102,7 +102,7 @@ jobs:
           set -euxo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin droiddesk-next
           git add DroidDesk-Next-v2.0.2.apk DroidDesk-Next-v2.0.2.sha256
           git commit -m "Add DroidDesk Next v2.0.2 APK"
+          git pull --rebase origin droiddesk-next
           git push origin HEAD:droiddesk-next
