@@ -93,13 +93,24 @@ repo_block = r'''    private fun writeCoreRepositorySources(useCloudflare: Boole
     ): Boolean {
         val pkgs = listOf("x11-repo")
 
-        writeCoreRepositorySources(useCloudflare = false)
+        val aptDir = File(prefixDir, "etc/apt")
+        val sourcesDir = File(aptDir, "sources.list.d")
+        aptDir.mkdirs()
+        sourcesDir.mkdirs()
+        File(sourcesDir, "x11.list").delete()
+        File(sourcesDir, "tur.list").delete()
+
+        File(aptDir, "sources.list").writeText(
+            "deb https://packages.termux.dev/apt/termux-main stable main\\n",
+        )
         val firstUpdate = executeCommand(
             "timeout --signal=TERM --kill-after=5s 120s " +
                 "apt-get -o Acquire::Retries=3 update",
         )
         if (firstUpdate.startsWith("Error:")) {
-            writeCoreRepositorySources(useCloudflare = true)
+            File(aptDir, "sources.list").writeText(
+                "deb https://packages-cf.termux.dev/apt/termux-main stable main\\n",
+            )
             val fallback = executeCommand(
                 "timeout --signal=TERM --kill-after=5s 120s " +
                     "apt-get -o Acquire::Retries=3 update",
