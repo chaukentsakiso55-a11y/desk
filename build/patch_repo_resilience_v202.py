@@ -16,7 +16,7 @@ def replace_once(path, old, new):
 def regex_once(path, pattern, replacement):
     p = root / path
     text = p.read_text(encoding="utf-8")
-    new, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE | re.DOTALL)
+    new, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=re.MULTILINE | re.DOTALL)
     if count != 1:
         raise SystemExit(f"Expected one regex match in {path}, found {count}")
     p.write_text(new, encoding="utf-8")
