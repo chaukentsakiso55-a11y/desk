@@ -25,7 +25,7 @@ jobs:
           unzip -tq DroidDesk-Next-v2.0.3.apk
           unzip -l DroidDesk-Next-v2.0.3.apk | grep -E "lib/(arm64-v8a|armeabi-v7a|x86_64)/" | head -n 20
           unzip -l DroidDesk-Next-v2.0.3.apk | grep -F "flutter_assets/assets/ember/ember_server.py"
-          unzip -p DroidDesk-Next-v2.0.3.apk flutter_assets/assets/ember/ember_server.py | grep -F "MARK LI control core"
+          unzip -p DroidDesk-Next-v2.0.3.apk assets/flutter_assets/assets/ember/ember_server.py | grep -F "MARK LI control core"
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         with:
