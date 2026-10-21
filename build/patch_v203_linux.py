@@ -90,10 +90,10 @@ helpers = r'''
                 [Desktop Entry]
                 Version=1.0
                 Type=Application
-                Name=${'$'}name
-                Comment=${'$'}comment
-                Exec=${'$'}exec
-                Icon=${'$'}icon
+                Name=$name
+                Comment=$comment
+                Exec=$exec
+                Icon=$icon
                 Terminal=${if (terminal) "true" else "false"}
                 Categories=Utility;Development;
                 StartupNotify=true
@@ -151,7 +151,7 @@ helpers = r'''
         if (!appDir.isDirectory) return
 
         storeInstalledPackages().forEach { packageName ->
-            val listFile = File(prefixDir, "var/lib/dpkg/info/${'$'}packageName.list")
+            val listFile = File(prefixDir, "var/lib/dpkg/info/$packageName.list")
             if (!listFile.isFile) return@forEach
             listFile.readLines()
                 .filter { it.contains("/share/applications/") && it.endsWith(".desktop") }
@@ -162,7 +162,7 @@ helpers = r'''
                     if (!source.isFile) return@forEach
                     if (Regex("(?im)^NoDisplay=true\\s*${'$'}").containsMatchIn(source.readText())) return@forEach
                     val safePackage = packageName.replace(Regex("[^A-Za-z0-9_.-]"), "_")
-                    val target = File(desktopDir, "DroidDesk-App-${'$'}safePackage-${'$'}desktopName")
+                    val target = File(desktopDir, "DroidDesk-App-$safePackage-$desktopName")
                     source.copyTo(target, overwrite = true)
                     target.setExecutable(true, false)
                 }
@@ -181,7 +181,8 @@ helpers = r'''
         )
         val missing = required.filterNot(::isDpkgPackageInstalled)
         if (missing.isNotEmpty()) {
-            installPackageGroup("pkg install -y ${'$'}{missing.joinToString(" ")}")
+            val packageList = missing.joinToString(" ")
+            installPackageGroup("pkg install -y $packageList")
         }
         patchShebangs(force = true)
         patchEmbeddedMatePaths()
