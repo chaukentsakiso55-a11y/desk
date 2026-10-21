@@ -18,7 +18,7 @@ SOURCES = [
 
 DESKTOPS = {
     "xfce4": ["xfce4", "xfce4-terminal", "xfce4-whiskermenu-plugin", "xfce4-notifyd", "thunar", "mousepad"],
-    "mate": ["mate", "mate-terminal", "gvfs", "mate-applets"],
+    "mate": ["mate", "mate-terminal", "gvfs", "mate-applets", "mate-notification-daemon", "thunar"],
     "lxqt": ["lxqt", "qterminal", "pcmanfm-qt", "featherpad"],
     "kde": ["plasma-desktop", "konsole", "dolphin"],
 }
@@ -38,7 +38,7 @@ def fetch(urls):
         try:
             request = urllib.request.Request(
                 url,
-                headers={"User-Agent": "DroidDesk-Audit/2.0.1"},
+                headers={"User-Agent": "DroidDesk-Audit/2.0.3"},
             )
             with urllib.request.urlopen(request, timeout=60) as r:
                 data = r.read()
@@ -177,7 +177,7 @@ def download_pkg(name):
         "plasma-workspace", "kwin-x11"
     } else "main"
     url = REPO_BASE[repo] + filename
-    request = urllib.request.Request(url, headers={"User-Agent": "DroidDesk-Audit/2.0.1"})
+    request = urllib.request.Request(url, headers={"User-Agent": "DroidDesk-Audit/2.0.3"})
     with urllib.request.urlopen(request, timeout=120) as r:
         data = r.read()
     fd, path = tempfile.mkstemp(suffix=".deb")
