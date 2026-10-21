@@ -18,12 +18,14 @@ jobs:
           ref: droiddesk-next
       - name: Validate current Termux desktop package graphs
         run: python3 audit/audit_desktops.py
-      - name: Verify v2.0.2 APK structure
+      - name: Verify v2.0.3 APK structure
         run: |
           set -euxo pipefail
-          test -s DroidDesk-Next-v2.0.2.apk
-          unzip -tq DroidDesk-Next-v2.0.2.apk
-          unzip -l DroidDesk-Next-v2.0.2.apk | grep -E "lib/(arm64-v8a|armeabi-v7a|x86_64)/" | head -n 20
+          test -s DroidDesk-Next-v2.0.3.apk
+          unzip -tq DroidDesk-Next-v2.0.3.apk
+          unzip -l DroidDesk-Next-v2.0.3.apk | grep -E "lib/(arm64-v8a|armeabi-v7a|x86_64)/" | head -n 20
+          unzip -l DroidDesk-Next-v2.0.3.apk | grep -F "flutter_assets/assets/ember/ember_server.py"
+          unzip -p DroidDesk-Next-v2.0.3.apk flutter_assets/assets/ember/ember_server.py | grep -F "MARK LI control core"
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         with:
