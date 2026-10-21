@@ -79,6 +79,10 @@ jobs:
         run: |
           python3 build/patch_v203_android.py /tmp/droiddesk-next
 
+      - name: Apply v2.0.4 repository newline validation
+        run: |
+          python3 build/patch_v204_repo_newline.py /tmp/droiddesk-next
+
       - name: Replace JetBrains Mono assets
         run: |
           set -euxo pipefail
@@ -108,15 +112,15 @@ jobs:
           unzip -tq "$APK"
           BUILD_TOOLS="$(ls -1 "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
-          cp "$APK" DroidDesk-Next-v2.0.3.apk
-          sha256sum DroidDesk-Next-v2.0.3.apk > DroidDesk-Next-v2.0.3.sha256
+          cp "$APK" DroidDesk-Next-v2.0.4.apk
+          sha256sum DroidDesk-Next-v2.0.4.apk > DroidDesk-Next-v2.0.4.sha256
 
       - name: Publish DroidDesk Next
         run: |
           set -euxo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add DroidDesk-Next-v2.0.3.apk DroidDesk-Next-v2.0.3.sha256
-          git commit -m "Add DroidDesk Next v2.0.3 APK"
+          git add DroidDesk-Next-v2.0.4.apk DroidDesk-Next-v2.0.4.sha256
+          git commit -m "Add DroidDesk Next v2.0.4 APK"
           git pull --rebase origin droiddesk-next
           git push origin HEAD:droiddesk-next
