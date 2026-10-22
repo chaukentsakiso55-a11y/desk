@@ -328,7 +328,7 @@ helpers = r'''
             installV205Launchers()
             return
         }
-        val packages = listOf("pyqt6", "python-numpy", "python-psutil", "vlc-qt", "xdg-utils")
+        val packages = listOf("pyqt6", "python-numpy", "python-psutil", "python-pillow", "vlc-qt", "xdg-utils")
         val missing = packages.filterNot(::isDpkgPackageInstalled)
         if (missing.isNotEmpty()) {
             val packageList = missing.joinToString(" ")
