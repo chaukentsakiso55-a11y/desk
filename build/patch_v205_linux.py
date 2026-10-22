@@ -27,6 +27,7 @@ text = runtime.read_text(encoding="utf-8")
 
 old_path = '''        env["PATH"] = listOf(
             "${prefixDir.absolutePath}/bin",
+            "${prefixDir.absolutePath}/libexec",
             "${prefixDir.absolutePath}/lib/xfce4/panel",
             System.getenv("PATH") ?: "/system/bin",
         ).joinToString(":")
@@ -34,6 +35,7 @@ old_path = '''        env["PATH"] = listOf(
 new_path = '''        env["PATH"] = listOf(
             "${File(homeDir, ".local/bin").absolutePath}",
             "${prefixDir.absolutePath}/bin",
+            "${prefixDir.absolutePath}/libexec",
             "${prefixDir.absolutePath}/lib/xfce4/panel",
             System.getenv("PATH") ?: "/system/bin",
         ).joinToString(":")
