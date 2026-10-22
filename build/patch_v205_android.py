@@ -90,7 +90,7 @@ helpers = r'''
             true
         }.recoverCatching {
             context.startActivity(
-                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMION)
+                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
             true
