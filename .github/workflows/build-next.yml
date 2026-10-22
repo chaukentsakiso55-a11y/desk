@@ -83,6 +83,36 @@ jobs:
         run: |
           python3 build/patch_v204_repo_newline.py /tmp/droiddesk-next
 
+      - name: Package native Ember for DroidDesk
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/droiddesk-next/app/assets/desktop
+          mkdir -p /tmp/droiddesk-next/app/assets/ember
+          cp next/droiddesk_files.py /tmp/droiddesk-next/app/assets/desktop/droiddesk_files.py
+          cp next/import_center.py /tmp/droiddesk-next/app/assets/desktop/import_center.py
+          rm -rf /tmp/ember-native
+          git clone --depth 1 https://github.com/chaukentsakiso55-a11y/ember.git /tmp/ember-native
+          python3 build/patch_ember_android.py /tmp/ember-native
+          rm -rf /tmp/ember-native/.git
+          rm -f /tmp/ember-native/.env
+          rm -f /tmp/ember-native/config/provider_secrets.json
+          rm -f /tmp/ember-native/config/api_keys.json
+          mkdir -p /tmp/ember-native/vendor
+          python3 -m pip install --disable-pip-version-check --no-compile --no-binary=:all: \
+            --target /tmp/ember-native/vendor \
+            requests certifi idna urllib3 charset_normalizer
+          cd /tmp/ember-native
+          zip -qr /tmp/droiddesk-next/app/assets/ember/ember-native.zip .
+          test -s /tmp/droiddesk-next/app/assets/ember/ember-native.zip
+
+      - name: Apply v2.0.5 Android bridge
+        run: |
+          python3 build/patch_v205_android.py /tmp/droiddesk-next
+
+      - name: Apply v2.0.5 desktop integration
+        run: |
+          python3 build/patch_v205_linux.py /tmp/droiddesk-next
+
       - name: Replace JetBrains Mono assets
         run: |
           set -euxo pipefail
@@ -112,15 +142,15 @@ jobs:
           unzip -tq "$APK"
           BUILD_TOOLS="$(ls -1 "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
-          cp "$APK" DroidDesk-Next-v2.0.4.apk
-          sha256sum DroidDesk-Next-v2.0.4.apk > DroidDesk-Next-v2.0.4.sha256
+          cp "$APK" DroidDesk-Next-v2.0.5.apk
+          sha256sum DroidDesk-Next-v2.0.5.apk > DroidDesk-Next-v2.0.5.sha256
 
       - name: Publish DroidDesk Next
         run: |
           set -euxo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add DroidDesk-Next-v2.0.4.apk DroidDesk-Next-v2.0.4.sha256
-          git commit -m "Add DroidDesk Next v2.0.4 APK"
+          git add DroidDesk-Next-v2.0.5.apk DroidDesk-Next-v2.0.5.sha256
+          git commit -m "Add DroidDesk Next v2.0.5 APK"
           git pull --rebase origin droiddesk-next
           git push origin HEAD:droiddesk-next
