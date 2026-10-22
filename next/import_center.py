@@ -74,8 +74,12 @@ def import_folder(src:pathlib.Path):
     candidates=[dest/"main.py",dest/"app.py",dest/"run.py",dest/"run.sh",dest/"start.sh"]
     launch=next((p for p in candidates if p.exists()),None)
     if launch:
-        launch.chmod(0o755);cmd=f"{sys.executable} {launch}" if launch.suffix==".py" else str(launch)
-        desktop_entry(src.name,cmd,launch.suffix==".sh)
+        launch.chmod(0o755)
+        if launch.suffix == ".py":
+            cmd = f"{sys.executable} {launch}"
+        else:
+            cmd = str(launch)
+        desktop_entry(src.name, cmd, launch.suffix == ".sh")
     return f"Imported folder to {dest}"
 
 class Window(QMainWindow):
