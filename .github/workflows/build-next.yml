@@ -101,6 +101,13 @@ jobs:
           python3 -m pip install --disable-pip-version-check --no-compile --no-binary=:all: \
             --target /tmp/ember-native/vendor \
             requests certifi idna urllib3 charset_normalizer
+          python3 -m pip install --disable-pip-version-check --no-compile --no-deps \
+            --target /tmp/ember-native/vendor \
+            pyautogui pyperclip python-xlib pyscreeze pytweening pygetwindow mouseinfo pyrect pymsgbox
+          python3 -m py_compile \
+            /tmp/ember-native/main.py \
+            /tmp/ember-native/actions/send_message.py \
+            /tmp/ember-native/desktop/window.py
           cd /tmp/ember-native
           zip -qr /tmp/droiddesk-next/app/assets/ember/ember-native.zip .
           test -s /tmp/droiddesk-next/app/assets/ember/ember-native.zip
