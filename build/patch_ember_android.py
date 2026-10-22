@@ -73,12 +73,12 @@ state.write_text(text[:start] + new_vault + "\n", encoding="utf-8")
 
 services = root / "desktop/services.py"
 text = services.read_text(encoding="utf-8")
-old = """                    if pid=='gemini':
-                        from desktop.gemini_backend import chat
-                        return chat(turns,tools,p.get('model',''),budget,settings['temperature'])
-                    return pool.chat(turns,tools=tools,timeout=45,max_tokens=budget,temperature=settings['temperature'],provider_id=pid)
+old = """                        if pid=='gemini':
+                            from desktop.gemini_backend import chat
+                            return chat(turns,tools,p.get('model',''),budget,settings['temperature'])
+                        return pool.chat(turns,tools=tools,timeout=45,max_tokens=budget,temperature=settings['temperature'],provider_id=pid)
 """
-new = """                    return pool.chat(turns,tools=tools,timeout=45,max_tokens=budget,temperature=settings['temperature'],provider_id=pid)
+new = """                        return pool.chat(turns,tools=tools,timeout=45,max_tokens=budget,temperature=settings['temperature'],provider_id=pid)
 """
 if old not in text:
     raise SystemExit("Gemini request block changed")
@@ -95,6 +95,16 @@ new2 = """        def test():
 if old2 not in text:
     raise SystemExit("Gemini test block changed")
 text = text.replace(old2, new2, 1)
+
+vision_old = """                    if pid=='gemini':
+                        from desktop.gemini_backend import chat
+                        result=chat(messages,[],p.get('model',''),settings['max_tokens'],settings['temperature'])
+                    else:result=pool.chat(messages,tools=[],timeout=45,max_tokens=settings['max_tokens'],temperature=settings['temperature'],provider_id=pid)
+"""
+vision_new = """                    result=pool.chat(messages,tools=[],timeout=45,max_tokens=settings['max_tokens'],temperature=settings['temperature'],provider_id=pid)
+"""
+if vision_old in text:
+    text = text.replace(vision_old, vision_new, 1)
 services.write_text(text, encoding="utf-8")
 
 settings = root / "desktop/settings.py"
