@@ -53,7 +53,7 @@ helpers = r'''
         true
     }.onFailure { Log.w(TAG, "Could not copy asset $assetPath", it) }.getOrDefault(false)
 
-    private fun extractZip(zipFile: File, targetDir: File): Boolean = runCatching {
+    private fun extractV205Zip(zipFile: File, targetDir: File): Boolean = runCatching {
         targetDir.mkdirs()
         val base = targetDir.canonicalFile
         java.util.zip.ZipInputStream(zipFile.inputStream().buffered()).use { zip ->
@@ -94,7 +94,7 @@ helpers = r'''
             val archive = File(cacheDir, "ember-native.zip")
             if (copyFlutterAsset("assets/ember/ember-native.zip", archive)) {
                 emberRoot.deleteRecursively()
-                if (extractZip(archive, emberRoot)) {
+                if (extractV205Zip(archive, emberRoot)) {
                     emberMarker.parentFile?.mkdirs()
                     emberMarker.writeText("v2.0.5")
                 }
