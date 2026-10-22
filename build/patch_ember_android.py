@@ -122,4 +122,65 @@ text = text.replace("'Windows System':'⊞'", "'Android / Linux System':'⊞'")
 text = text.replace("'Windows System':'Control apps and folders'", "'Android / Linux System':'Control apps and folders'")
 reference.write_text(text, encoding="utf-8")
 
+
+send_message = root / "actions/send_message.py"
+text = send_message.read_text(encoding="utf-8")
+if "import platform" not in text:
+    text = text.replace("import json\n", "import json\nimport platform\n", 1)
+
+old_os = '''def _get_os() -> str:
+    try:
+        cfg = json.loads(
+            (_base_dir() / "config" / "api_keys.json").read_text(encoding="utf-8")
+        )
+        return cfg.get("os_system", "windows").lower()
+    except Exception:
+        return "windows"
+'''
+new_os = '''def _get_os() -> str:
+    try:
+        cfg = json.loads(
+            (_base_dir() / "config" / "api_keys.json").read_text(encoding="utf-8")
+        )
+        configured = str(cfg.get("os_system", "") or "").strip().lower()
+        if configured:
+            return configured
+    except Exception:
+        pass
+    detected = platform.system().lower()
+    return "mac" if detected == "darwin" else detected or "linux"
+'''
+if old_os not in text:
+    raise SystemExit("Ember send_message OS detection changed")
+text = text.replace(old_os, new_os, 1)
+
+old_whatsapp = '''def _send_whatsapp(receiver: str, message: str) -> str:
+    return _desktop_send("WhatsApp", receiver, message)
+'''
+new_whatsapp = '''def _send_whatsapp(receiver: str, message: str) -> str:
+    if _get_os() != "linux":
+        return _desktop_send("WhatsApp", receiver, message)
+
+    _require_pyautogui()
+    if not _open_browser_url("https://web.whatsapp.com/"):
+        return "Could not open WhatsApp Web in Firefox."
+
+    time.sleep(5.0)
+    pyautogui.hotkey("ctrl", "k")
+    time.sleep(0.7)
+    _clear_and_paste(receiver)
+    time.sleep(1.1)
+    pyautogui.press("enter")
+    time.sleep(1.0)
+    _paste_text(message)
+    time.sleep(0.25)
+    pyautogui.press("enter")
+    time.sleep(0.4)
+    return f"Message sent to {receiver} via WhatsApp Web."
+'''
+if old_whatsapp not in text:
+    raise SystemExit("Ember WhatsApp handler changed")
+text = text.replace(old_whatsapp, new_whatsapp, 1)
+send_message.write_text(text, encoding="utf-8")
+
 print("Ember Android/Linux compatibility patch applied.")
