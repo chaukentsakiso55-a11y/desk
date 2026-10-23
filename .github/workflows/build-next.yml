@@ -124,10 +124,14 @@ jobs:
         run: |
           python3 build/patch_v206_final.py /tmp/droiddesk-next
 
+      - name: Apply v2.0.7 resumable background setup
+        run: |
+          python3 build/patch_v207_setup.py /tmp/droiddesk-next
+
       - name: Validate bundled helper source
         run: |
           python3 -m py_compile next/droiddesk_files.py next/import_center.py
-          python3 -m py_compile build/patch_ember_android.py build/patch_v205_android.py build/patch_v205_linux.py build/patch_v206_final.py
+          python3 -m py_compile build/patch_ember_android.py build/patch_v205_android.py build/patch_v205_linux.py build/patch_v206_final.py build/patch_v207_setup.py
 
       - name: Replace JetBrains Mono assets
         run: |
@@ -161,24 +165,24 @@ jobs:
           unzip -l "$APK" | grep -F "assets/flutter_assets/assets/desktop/import_center.py"
           BUILD_TOOLS="$(ls -1 "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
-          cp "$APK" DroidDesk-Next-v2.0.6.apk
-          sha256sum DroidDesk-Next-v2.0.6.apk > DroidDesk-Next-v2.0.6.sha256
+          cp "$APK" DroidDesk-Next-v2.0.7.apk
+          sha256sum DroidDesk-Next-v2.0.7.apk > DroidDesk-Next-v2.0.7.sha256
 
       - name: Publish DroidDesk Next
         run: |
           set -euxo pipefail
-          cp DroidDesk-Next-v2.0.6.apk /tmp/DroidDesk-Next-v2.0.6.apk
-          cp DroidDesk-Next-v2.0.6.sha256 /tmp/DroidDesk-Next-v2.0.6.sha256
+          cp DroidDesk-Next-v2.0.7.apk /tmp/DroidDesk-Next-v2.0.7.apk
+          cp DroidDesk-Next-v2.0.7.sha256 /tmp/DroidDesk-Next-v2.0.7.sha256
           git fetch origin droiddesk-next
           git reset --hard origin/droiddesk-next
-          cp /tmp/DroidDesk-Next-v2.0.6.apk DroidDesk-Next-v2.0.6.apk
-          cp /tmp/DroidDesk-Next-v2.0.6.sha256 DroidDesk-Next-v2.0.6.sha256
+          cp /tmp/DroidDesk-Next-v2.0.7.apk DroidDesk-Next-v2.0.7.apk
+          cp /tmp/DroidDesk-Next-v2.0.7.sha256 DroidDesk-Next-v2.0.7.sha256
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f DroidDesk-Next-v2.0.6.apk DroidDesk-Next-v2.0.6.sha256
+          git add -f DroidDesk-Next-v2.0.7.apk DroidDesk-Next-v2.0.7.sha256
           if git diff --cached --quiet; then
-            echo "Verified v2.0.6 APK already matches the branch."
+            echo "Verified v2.0.7 APK already matches the branch."
             exit 0
           fi
-          git commit -m "Replace DroidDesk Next v2.0.6 APK with verified build"
+          git commit -m "Replace DroidDesk Next v2.0.7 APK with verified build"
           git push origin HEAD:droiddesk-next
