@@ -83,31 +83,56 @@ jobs:
         run: |
           python3 build/patch_v204_repo_newline.py /tmp/droiddesk-next
 
-      - name: Package native Ember for DroidDesk
+      - name: Package full-control Ember Droid for DroidDesk
         run: |
           set -euxo pipefail
           mkdir -p /tmp/droiddesk-next/app/assets/desktop
           mkdir -p /tmp/droiddesk-next/app/assets/ember
           cp next/droiddesk_files.py /tmp/droiddesk-next/app/assets/desktop/droiddesk_files.py
           cp next/import_center.py /tmp/droiddesk-next/app/assets/desktop/import_center.py
-          rm -rf /tmp/ember-native
-          git clone --depth 1 https://github.com/chaukentsakiso55-a11y/ember.git /tmp/ember-native
-          python3 build/patch_ember_android.py /tmp/ember-native
+          cp next/python_runner.py /tmp/droiddesk-next/app/assets/desktop/python_runner.py
+          rm -rf /tmp/ember-droid-repo /tmp/ember-stage /tmp/ember-native
+          git clone --depth 1 https://github.com/chaukentsakiso55-a11y/ember-Droid-.git /tmp/ember-droid-repo
+          mkdir -p /tmp/ember-stage
+          unzip -q /tmp/ember-droid-repo/Ember-Full-Control-Public-Safe.zip -d /tmp/ember-stage
+          EMBER_DIR="$(find /tmp/ember-stage -type f -name main.py -printf '%h\n' | head -n 1)"
+          test -n "$EMBER_DIR"
+          cp -a "$EMBER_DIR" /tmp/ember-native
+          test -s /tmp/ember-native/main.py
+          test -s /tmp/ember-native/actions/game_control.py
+          test -s /tmp/ember-native/actions/whatsapp_control.py
+          test -s /tmp/ember-native/core/whatsapp_web.py
+          python3 build/patch_ember_droid.py /tmp/ember-native
           rm -rf /tmp/ember-native/.git
           rm -f /tmp/ember-native/.env
-          rm -f /tmp/ember-native/config/provider_secrets.json
-          rm -f /tmp/ember-native/config/api_keys.json
           mkdir -p /tmp/ember-native/vendor
           python3 -m pip install --disable-pip-version-check --no-compile --no-binary=:all: \
             --target /tmp/ember-native/vendor \
-            requests certifi idna urllib3 charset_normalizer
+            requests certifi idna urllib3 charset_normalizer beautifulsoup4 soupsieve
           python3 -m pip install --disable-pip-version-check --no-compile --no-deps \
             --target /tmp/ember-native/vendor \
-            pyautogui pyperclip python-xlib pyscreeze pytweening pygetwindow mouseinfo pyrect pymsgbox
+            pyautogui pyperclip python-xlib pyscreeze pytweening pygetwindow mouseinfo pyrect pymsgbox \
+            mss send2trash qrcode youtube-transcript-api sounddevice
+          python3 -m pip install --disable-pip-version-check pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          src = Path("/tmp/ember-native/config/ember.ico")
+          dst = Path("/tmp/ember-native/config/ember.png")
+          if src.exists():
+              with Image.open(src) as image:
+                  image.seek(0)
+                  image.convert("RGBA").save(dst, "PNG")
+          if not dst.exists():
+              raise SystemExit("Ember icon conversion failed")
+          PY
           python3 -m py_compile \
             /tmp/ember-native/main.py \
+            /tmp/ember-native/ui.py \
             /tmp/ember-native/actions/send_message.py \
-            /tmp/ember-native/desktop/window.py
+            /tmp/ember-native/actions/screen_processor.py \
+            /tmp/ember-native/memory/config_manager.py
+          test -s /tmp/ember-native/config/ember.png
           cd /tmp/ember-native
           zip -qr /tmp/droiddesk-next/app/assets/ember/ember-native.zip .
           test -s /tmp/droiddesk-next/app/assets/ember/ember-native.zip
@@ -128,10 +153,17 @@ jobs:
         run: |
           python3 build/patch_v207_setup.py /tmp/droiddesk-next
 
+      - name: Apply v2.1.0 desktop integration
+        run: |
+          cat build/patch_v210_desktop.py.part0 build/patch_v210_desktop.py.part1 build/patch_v210_desktop.py.part2 > /tmp/patch_v210_desktop.py
+          python3 -m py_compile /tmp/patch_v210_desktop.py
+          python3 /tmp/patch_v210_desktop.py /tmp/droiddesk-next
+
       - name: Validate bundled helper source
         run: |
-          python3 -m py_compile next/droiddesk_files.py next/import_center.py
-          python3 -m py_compile build/patch_ember_android.py build/patch_v205_android.py build/patch_v205_linux.py build/patch_v206_final.py build/patch_v207_setup.py
+          python3 -m py_compile next/droiddesk_files.py next/import_center.py next/python_runner.py
+          python3 -m py_compile build/patch_ember_droid.py build/patch_v205_android.py build/patch_v205_linux.py build/patch_v206_final.py build/patch_v207_setup.py
+          python3 -m py_compile /tmp/patch_v210_desktop.py
 
       - name: Replace JetBrains Mono assets
         run: |
@@ -163,26 +195,27 @@ jobs:
           unzip -l "$APK" | grep -F "assets/flutter_assets/assets/ember/ember-native.zip"
           unzip -l "$APK" | grep -F "assets/flutter_assets/assets/desktop/droiddesk_files.py"
           unzip -l "$APK" | grep -F "assets/flutter_assets/assets/desktop/import_center.py"
+          unzip -l "$APK" | grep -F "assets/flutter_assets/assets/desktop/python_runner.py"
           BUILD_TOOLS="$(ls -1 "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
-          cp "$APK" DroidDesk-Next-v2.0.7.apk
-          sha256sum DroidDesk-Next-v2.0.7.apk > DroidDesk-Next-v2.0.7.sha256
+          cp "$APK" DroidDesk-Next-v2.1.0.apk
+          sha256sum DroidDesk-Next-v2.1.0.apk > DroidDesk-Next-v2.1.0.sha256
 
       - name: Publish DroidDesk Next
         run: |
           set -euxo pipefail
-          cp DroidDesk-Next-v2.0.7.apk /tmp/DroidDesk-Next-v2.0.7.apk
-          cp DroidDesk-Next-v2.0.7.sha256 /tmp/DroidDesk-Next-v2.0.7.sha256
+          cp DroidDesk-Next-v2.1.0.apk /tmp/DroidDesk-Next-v2.1.0.apk
+          cp DroidDesk-Next-v2.1.0.sha256 /tmp/DroidDesk-Next-v2.1.0.sha256
           git fetch origin droiddesk-next
           git reset --hard origin/droiddesk-next
-          cp /tmp/DroidDesk-Next-v2.0.7.apk DroidDesk-Next-v2.0.7.apk
-          cp /tmp/DroidDesk-Next-v2.0.7.sha256 DroidDesk-Next-v2.0.7.sha256
+          cp /tmp/DroidDesk-Next-v2.1.0.apk DroidDesk-Next-v2.1.0.apk
+          cp /tmp/DroidDesk-Next-v2.1.0.sha256 DroidDesk-Next-v2.1.0.sha256
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f DroidDesk-Next-v2.0.7.apk DroidDesk-Next-v2.0.7.sha256
+          git add -f DroidDesk-Next-v2.1.0.apk DroidDesk-Next-v2.1.0.sha256
           if git diff --cached --quiet; then
-            echo "Verified v2.0.7 APK already matches the branch."
+            echo "Verified v2.1.0 APK already matches the branch."
             exit 0
           fi
-          git commit -m "Replace DroidDesk Next v2.0.7 APK with verified build"
+          git commit -m "Replace DroidDesk Next v2.1.0 APK with verified build"
           git push origin HEAD:droiddesk-next

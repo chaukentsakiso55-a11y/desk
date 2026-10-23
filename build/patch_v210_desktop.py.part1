@@ -1,0 +1,129 @@
+emberConfig.absolutePath}"
+            export PYTHONPATH="${emberRoot.absolutePath}:${emberRoot.absolutePath}/vendor:${'$'}{PYTHONPATH:-}"
+            cd "${emberRoot.absolutePath}"
+            exec "${File(binDir, "python3").absolutePath}" main.py >>"${File(cacheDir, "ember-droid.log").absolutePath}" 2>&1
+            """.trimIndent(),
+        )
+'''
+if old not in text:
+    raise SystemExit("Ember launcher block changed")
+text = text.replace(old, new, 1)
+
+old = '''        val firefoxLauncher = shell(
+            "firefox-droiddesk",
+            """
+            export DISPLAY="${'$'}{DISPLAY:-:0}"
+            export GDK_BACKEND=x11
+            export MOZ_ENABLE_WAYLAND=0
+            export MOZ_DBUS_REMOTE=0
+            export TMPDIR="${tmpDir.absolutePath}"
+            export XDG_RUNTIME_DIR="${tmpDir.absolutePath}"
+            profile="${File(homeDir, ".mozilla/droiddesk").absolutePath}"
+            mkdir -p "${'$'}profile"
+            exec "${File(binDir, "firefox").absolutePath}" --no-remote --profile "${'$'}profile" "${'$'}@"
+            """.trimIndent(),
+        )
+'''
+new = '''        val firefoxLauncher = shell(
+            "firefox-droiddesk",
+            """
+            export DISPLAY="${'$'}{DISPLAY:-:0}"
+            export GDK_BACKEND=x11
+            export MOZ_ENABLE_WAYLAND=0
+            export MOZ_DBUS_REMOTE=0
+            export TMPDIR="${tmpDir.absolutePath}"
+            export XDG_RUNTIME_DIR="${tmpDir.absolutePath}"
+            export XKB_CONFIG_ROOT="${File(prefixDir, "share/X11/xkb").absolutePath}"
+            export DBUS_SESSION_BUS_ADDRESS="unix:path=${File(tmpDir, "dbus-session").absolutePath}"
+            profile="${File(homeDir, ".mozilla/droiddesk").absolutePath}"
+            mkdir -p "${'$'}profile"
+            exec "${File(binDir, "firefox").absolutePath}" --no-remote --profile "${'$'}profile" "${'$'}@" >>"${File(cacheDir, "firefox.log").absolutePath}" 2>&1
+            """.trimIndent(),
+        )
+'''
+if old not in text:
+    raise SystemExit("Firefox launcher block changed")
+text = text.replace(old, new, 1)
+
+old = '''        val vlcLauncher = shell(
+            "vlc-droiddesk",
+            """
+            if [ ! -x "${File(binDir, "vlc").absolutePath}" ]; then
+              "${File(binDir, "pkg").absolutePath}" install -y vlc-qt >>"$supportLog" 2>&1 || exit 1
+            fi
+            export DISPLAY="${'$'}{DISPLAY:-:0}"
+            export QT_QPA_PLATFORM=xcb
+            export XDG_RUNTIME_DIR="${tmpDir.absolutePath}"
+            exec "${File(binDir, "vlc").absolutePath}" "${'$'}@"
+            """.trimIndent(),
+        )
+'''
+new = '''        val vlcLauncher = shell(
+            "vlc-droiddesk",
+            """
+            if [ ! -x "${File(binDir, "vlc").absolutePath}" ]; then
+              "${File(binDir, "pkg").absolutePath}" install -y vlc-qt >>"$supportLog" 2>&1 || exit 1
+            fi
+            export DISPLAY="${'$'}{DISPLAY:-:0}"
+            export QT_QPA_PLATFORM=xcb
+            export XDG_RUNTIME_DIR="${tmpDir.absolutePath}"
+            export XKB_CONFIG_ROOT="${File(prefixDir, "share/X11/xkb").absolutePath}"
+            pulse_socket="${File(tmpDir, "pulse/native").absolutePath}"
+            for _ in 1 2 3 4 5 6 7 8 9 10; do
+              [ -S "${'$'}pulse_socket" ] && break
+              sleep 0.1
+            done
+            [ -S "${'$'}pulse_socket" ] && export PULSE_SERVER="unix:${'$'}pulse_socket"
+            exec "${File(binDir, "vlc").absolutePath}" "${'$'}@" >>"${File(cacheDir, "vlc.log").absolutePath}" 2>&1
+            """.trimIndent(),
+        )
+'''
+if old not in text:
+    raise SystemExit("VLC launcher block changed")
+text = text.replace(old, new, 1)
+
+insert_marker = '''        val firefoxLauncher = shell(
+'''
+python_launcher = '''        val pythonLauncher = shell(
+            "droiddesk-python-runner",
+            """
+            if ! "${File(binDir, "python3").absolutePath}" -c 'import PyQt6' >/dev/null 2>&1; then
+              "${File(binDir, "pkg").absolutePath}" install -y pyqt6 >>"$supportLog" 2>&1 || exit 1
+            fi
+            export DISPLAY="${'$'}{DISPLAY:-:0}"
+            export QT_QPA_PLATFORM=xcb
+            export XDG_RUNTIME_DIR="${tmpDir.absolutePath}"
+            export XKB_CONFIG_ROOT="${File(prefixDir, "share/X11/xkb").absolutePath}"
+            exec "${File(binDir, "python3").absolutePath}" "${pythonRunner.absolutePath}" "${'$'}@"
+            """.trimIndent(),
+        )
+'''
+if insert_marker not in text:
+    raise SystemExit("Python launcher insertion marker missing")
+text = text.replace(insert_marker, python_launcher + insert_marker, 1)
+
+old = '''        desktop(
+            File(localApps, "droiddesk-ember.desktop"),
+            "Ember",
+            "Native Ember neural command node",
+            emberLauncher.absolutePath,
+            "applications-development",
+            "Utility;Development;Network;",
+        )
+'''
+new = '''        desktop(
+            File(localApps, "droiddesk-ember.desktop"),
+            "Ember Droid",
+            "Full-control Ember assistant for DroidDesk",
+            emberLauncher.absolutePath,
+            File(emberRoot, "config/ember.png").absolutePath,
+            "Utility;Development;Network;",
+        )
+        desktop(
+            File(localApps, "droiddesk-python.desktop"),
+            "Python",
+            "Edit and run Python code on DroidDesk",
+            "${pythonLauncher.absolutePath} %f",
+            "python3",
+            "Development;IDE;",
+            "text/x-python;application/

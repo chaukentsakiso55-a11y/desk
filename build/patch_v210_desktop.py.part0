@@ -1,0 +1,116 @@
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]).resolve()
+
+pubspec = root / "app/pubspec.yaml"
+text = pubspec.read_text(encoding="utf-8")
+if "version: 2.0.7+207" not in text:
+    raise SystemExit("Expected v2.0.7 before v2.1.0")
+text = text.replace("version: 2.0.7+207", "version: 2.1.0+210", 1)
+asset_marker = "    - assets/desktop/import_center.py\n"
+if "assets/desktop/python_runner.py" not in text:
+    if asset_marker not in text:
+        raise SystemExit("Desktop asset marker missing")
+    text = text.replace(asset_marker, asset_marker + "    - assets/desktop/python_runner.py\n", 1)
+pubspec.write_text(text, encoding="utf-8")
+
+runtime = root / "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/runtime/LinuxRuntime.kt"
+text = runtime.read_text(encoding="utf-8")
+
+old = '''        env["DISPLAY"] = ":0"
+        env["XDG_RUNTIME_DIR"] = tmpDir.absolutePath
+'''
+new = '''        env["DISPLAY"] = ":0"
+        env["XDG_RUNTIME_DIR"] = tmpDir.absolutePath
+        env["XKB_CONFIG_ROOT"] = File(prefixDir, "share/X11/xkb").absolutePath
+'''
+if old not in text:
+    raise SystemExit("Termux environment DISPLAY block changed")
+text = text.replace(old, new, 1)
+
+text = text.replace('.droiddesk-v205', '.droiddesk-v210')
+text = text.replace('emberMarker.writeText("v2.0.5")', 'emberMarker.writeText("v2.1.0")')
+
+old = '''        val filesApp = File(toolsDir, "droiddesk_files.py")
+        val importApp = File(toolsDir, "import_center.py")
+        copyFlutterAsset("assets/desktop/droiddesk_files.py", filesApp)
+        copyFlutterAsset("assets/desktop/import_center.py", importApp)
+'''
+new = '''        val filesApp = File(toolsDir, "droiddesk_files.py")
+        val importApp = File(toolsDir, "import_center.py")
+        val pythonRunner = File(toolsDir, "python_runner.py")
+        copyFlutterAsset("assets/desktop/droiddesk_files.py", filesApp)
+        copyFlutterAsset("assets/desktop/import_center.py", importApp)
+        copyFlutterAsset("assets/desktop/python_runner.py", pythonRunner)
+'''
+if old not in text:
+    raise SystemExit("DroidDesk tool asset block changed")
+text = text.replace(old, new, 1)
+
+old = '''                archive.delete()
+            }
+        }
+
+        fun shell(name: String, body: String): File {
+'''
+new = '''                archive.delete()
+            }
+        }
+
+        val emberConfig = File(homeDir, ".config/ember-droid").apply { mkdirs() }
+        val packagedConfig = File(emberRoot, "config")
+        if (packagedConfig.isDirectory) {
+            executeCommand(
+                "mkdir -p '${emberConfig.absolutePath}'; " +
+                    "cp -an '${File(homeDir, ".config/ember").absolutePath}/.' '${emberConfig.absolutePath}/' >/dev/null 2>&1 || true; " +
+                    "cp -an '${packagedConfig.absolutePath}/.' '${emberConfig.absolutePath}/' >/dev/null 2>&1 || true; " +
+                    "rm -rf '${packagedConfig.absolutePath}'; " +
+                    "ln -s '${emberConfig.absolutePath}' '${packagedConfig.absolutePath}'",
+            )
+        }
+
+        fun shell(name: String, body: String): File {
+'''
+if old not in text:
+    raise SystemExit("Ember extraction block changed")
+text = text.replace(old, new, 1)
+
+old = '''        val emberLauncher = shell(
+            "ember",
+            """
+            needed=""
+            "${File(binDir, "python3").absolutePath}" -c 'import PyQt6' >/dev/null 2>&1 || needed="${'$'}needed pyqt6"
+            "${File(binDir, "python3").absolutePath}" -c 'import numpy' >/dev/null 2>&1 || needed="${'$'}needed python-numpy"
+            "${File(binDir, "python3").absolutePath}" -c 'import psutil' >/dev/null 2>&1 || needed="${'$'}needed python-psutil"
+            if [ -n "${'$'}needed" ]; then
+              "${File(binDir, "pkg").absolutePath}" install -y ${'$'}needed >>"$supportLog" 2>&1 || exit 1
+            fi
+            export DISPLAY="${'$'}{DISPLAY:-:0}"
+            export GDK_BACKEND=x11
+            export QT_QPA_PLATFORM=xcb
+            export EMBER_DATA_DIR="${File(homeDir, ".config/ember").absolutePath}"
+            export PYTHONPATH="${emberRoot.absolutePath}:${emberRoot.absolutePath}/vendor:${'$'}{PYTHONPATH:-}"
+            cd "${emberRoot.absolutePath}"
+            exec "${File(binDir, "python3").absolutePath}" main.py
+            """.trimIndent(),
+        )
+'''
+new = '''        val emberLauncher = shell(
+            "ember",
+            """
+            needed=""
+            "${File(binDir, "python3").absolutePath}" -c 'import PyQt6' >/dev/null 2>&1 || needed="${'$'}needed pyqt6"
+            "${File(binDir, "python3").absolutePath}" -c 'import numpy' >/dev/null 2>&1 || needed="${'$'}needed python-numpy"
+            "${File(binDir, "python3").absolutePath}" -c 'import psutil' >/dev/null 2>&1 || needed="${'$'}needed python-psutil"
+            "${File(binDir, "python3").absolutePath}" -c 'from PIL import Image' >/dev/null 2>&1 || needed="${'$'}needed python-pillow"
+            if [ -n "${'$'}needed" ]; then
+              "${File(binDir, "pkg").absolutePath}" install -y ${'$'}needed >>"$supportLog" 2>&1 || exit 1
+            fi
+            export DISPLAY="${'$'}{DISPLAY:-:0}"
+            export GDK_BACKEND=x11
+            export QT_QPA_PLATFORM=xcb
+            export XDG_RUNTIME_DIR="${tmpDir.absolutePath}"
+            export XKB_CONFIG_ROOT="${File(prefixDir, "share/X11/xkb").absolutePath}"
+            export DBUS_SESSION_BUS_ADDRESS="unix:path=${File(tmpDir, "dbus-session").absolutePath}"
+            export EMBER_DATA_DIR="${

@@ -1,0 +1,124 @@
+x-python-code;",
+        )
+'''
+if old not in text:
+    raise SystemExit("Ember desktop block changed")
+text = text.replace(old, new, 1)
+
+old = '''        File(localApps, "droiddesk-python.desktop").takeIf(File::exists)?.copyTo(
+            File(desktopDir, "DroidDesk-Python.desktop"),
+            overwrite = true,
+        )?.setExecutable(true, false)
+'''
+new = '''        File(localApps, "droiddesk-python.desktop").copyTo(
+            File(desktopDir, "DroidDesk-Python.desktop"),
+            overwrite = true,
+        ).setExecutable(true, false)
+'''
+if old not in text:
+    raise SystemExit("Python desktop copy block changed")
+text = text.replace(old, new, 1)
+
+old = 'val packages = listOf("pyqt6", "python-numpy", "python-psutil", "python-pillow", "vlc-qt", "xdg-utils")'
+new = 'val packages = listOf("pyqt6", "python-numpy", "python-psutil", "python-pillow", "vlc-qt", "xdg-utils", "portaudio")'
+if old not in text:
+    raise SystemExit("Support packages block changed")
+text = text.replace(old, new, 1)
+
+old = '''        storeInstalledPackages().forEach { packageName ->
+            val listFile = File(prefixDir, "var/lib/dpkg/info/$packageName.list")
+            if (!listFile.isFile) return@forEach
+            listFile.readLines()
+                .filter { it.contains("/share/applications/") && it.endsWith(".desktop") }
+                .map { File(it).name }
+                .distinct()
+                .forEach { desktopName ->
+                    val source = File(appDir, desktopName)
+                    if (!source.isFile) return@forEach
+                    if (Regex("(?im)^NoDisplay=true\\s*${'$'}").containsMatchIn(source.readText())) return@forEach
+                    val safePackage = packageName.replace(Regex("[^A-Za-z0-9_.-]"), "_")
+                    val target = File(desktopDir, "DroidDesk-App-$safePackage-$desktopName")
+                    source.copyTo(target, overwrite = true)
+                    target.setExecutable(true, false)
+                }
+        }
+'''
+new = '''        appDir.listFiles { file -> file.isFile && file.extension == "desktop" }
+            ?.forEach { source ->
+                val contents = runCatching { source.readText() }.getOrDefault("")
+                if (Regex("(?im)^NoDisplay=true\\s*${'$'}").containsMatchIn(contents)) return@forEach
+                if (Regex("(?im)^Hidden=true\\s*${'$'}").containsMatchIn(contents)) return@forEach
+                val target = File(desktopDir, "DroidDesk-App-${source.name}")
+                source.copyTo(target, overwrite = true)
+                target.setExecutable(true, false)
+            }
+'''
+if old not in text:
+    raise SystemExit("Desktop app sync block changed")
+text = text.replace(old, new, 1)
+
+old = '''                    if pactl list short sinks 2>/dev/null | grep -q AAudio_sink; then
+                        audio_ready=1
+                        break
+                    fi
+'''
+new = '''                    if pactl list short sinks 2>/dev/null | grep -q AAudio_sink; then
+                        pactl set-default-sink AAudio_sink >/dev/null 2>&1 || true
+                        audio_ready=1
+                        break
+                    fi
+'''
+if old not in text:
+    raise SystemExit("AAudio sink readiness block changed")
+text = text.replace(old, new, 1)
+
+old = '''            echo "DIAG: PulseAudio sinks: ${'$'}(pactl list short sinks 2>/dev/null | cut -f2 | tr '\\n' ' ')"
+'''
+new = '''            first_sink="${'$'}(pactl list short sinks 2>/dev/null | head -n 1 | cut -f2)"
+            if [ -n "${'$'}first_sink" ]; then
+                pactl set-default-sink "${'$'}first_sink" >/dev/null 2>&1 || true
+            fi
+            echo "DIAG: PulseAudio sinks: ${'$'}(pactl list short sinks 2>/dev/null | cut -f2 | tr '\\n' ' ')"
+'''
+if old not in text:
+    raise SystemExit("PulseAudio diagnostic block changed")
+text = text.replace(old, new, 1)
+
+runtime.write_text(text, encoding="utf-8")
+
+activity = root / "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/view/DesktopActivity.kt"
+text = activity.read_text(encoding="utf-8")
+old = '''        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        window.attributes = window.attributes.apply {
+'''
+new = '''        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+            window.isStatusBarContrastEnforced = false
+        }
+        window.attributes = window.attributes.apply {
+'''
+if old not in text:
+    raise SystemExit("Immersive color block changed")
+text = text.replace(old, new, 1)
+activity.write_text(text, encoding="utf-8")
+
+xmain = root / "app/android/app/src/main/java/com/termux/x11/MainActivity.java"
+text = xmain.read_text(encoding="utf-8")
+old = '''        if (lorieView == null) {
+            lorieView = new LorieView(context);
+        }
+'''
+new = '''        if (lorieView == null) {
+            lorieView = new LorieView(context);
+        }
+        lorieView.reloadPreferences(getPrefs());
+'''
+if old not in text:
+    raise SystemExit("LorieView init block changed")
+text = text.replace(old, new, 1)
+xmain.write_text(text, encoding="utf-8")
+
+print("Applied DroidDesk v2.1.0 desktop integration fixes.")
