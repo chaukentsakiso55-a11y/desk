@@ -155,7 +155,7 @@ jobs:
 
       - name: Apply v2.1.0 desktop integration
         run: |
-          cat build/patch_v210_desktop.py.part0 build/patch_v210_desktop.py.part1 build/patch_v210_desktop.py.part2 > /tmp/patch_v210_desktop.py
+          gzip -dc build/patch_v210_desktop.py.gz > /tmp/patch_v210_desktop.py
           python3 -m py_compile /tmp/patch_v210_desktop.py
           python3 /tmp/patch_v210_desktop.py /tmp/droiddesk-next
 
