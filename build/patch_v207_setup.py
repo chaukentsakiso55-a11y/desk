@@ -67,7 +67,7 @@ helpers = r'''
             if (missing.isEmpty()) return true
 
             if (attempt < 2) {
-                refreshCorePackageLists(onProgress)
+                refreshCorePackageLists(null)
             }
         }
 
@@ -106,13 +106,13 @@ if old not in text:
     raise SystemExit("Initial package recovery block changed")
 text = text.replace(old, new, 1)
 
-old = '''        if (!installPackageGroup("pkg install -y xorg-xrandr pulseaudio xclip")) {
+old = '''        if (!installPackageGroup("pkg install -y xorg-xrandr pulseaudio xclip xkeyboard-config")) {
             Log.e(TAG, "Native X11 runtime package install failed")
             return false
         }
 '''
 new = '''        if (!installPackagesResilient(
-                listOf("xorg-xrandr", "pulseaudio", "xclip"),
+                listOf("xorg-xrandr", "pulseaudio", "xclip", "xkeyboard-config"),
                 "Installing X11 and audio packages...",
                 onProgress,
                 0.34,
@@ -260,7 +260,7 @@ service.write_text(text, encoding="utf-8")
 state = root / "app/lib/state/app_state.dart"
 text = state.read_text(encoding="utf-8")
 old = "throw StateError('Native Termux package installation failed');"
-new = "throw StateError('Native Linux setup paused. Tap Retry to resum from downloaded packages.');"
+new = "throw StateError('Native Linux setup paused. Tap Retry to resume from downloaded packages.');"
 if text.count(old) < 1:
     raise SystemExit("Native setup error message changed")
 text = text.replace(old, new)
