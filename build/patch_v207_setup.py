@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 import sys
 
 root = Path(sys.argv[1]).resolve()
@@ -16,69 +15,7 @@ pubspec.write_text(
 runtime = root / "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/runtime/LinuxRuntime.kt"
 text = runtime.read_text(encoding="utf-8")
 
-repo_pattern = re.compile(
-    r"    private fun installRepoPackages\(\): Boolean \{.*?\n    \}\n\n    private fun installPackageGroup",
-    re.S,
-)
-repo_replacement = r'''    private fun installRepoPackages(): Boolean {
-        val pkgs = listOf("x11-repo", "tur-repo")
-
-        if (pkgs.all(::isDpkgPackageInstalled)) {
-            val refresh = executeCommand(
-                "timeout --signal=TERM --kill-after=5s 120s apt-get -o Acquire::Retries=5 update",
-            )
-            if (refresh.startsWith("Error:")) {
-                Log.w(TAG, "Repository refresh failed; keeping the last verified package lists")
-            }
-            return true
-        }
-
-        executeCommand(
-            "rm -f \"${prefixDir.absolutePath}\"/x11-repo_*.deb " +
-                "\"${prefixDir.absolutePath}\"/tur-repo_*.deb >/dev/null 2>&1 || true",
-        )
-
-        if (executeCommand("apt-get -o Acquire::Retries=5 update").startsWith("Error:")) {
-            Log.e(TAG, "apt-get update failed before installing repo packages")
-            return false
-        }
-
-        val downloadCmd =
-            "cd \"${prefixDir.absolutePath}\" && apt-get -o Acquire::Retries=5 download " +
-                pkgs.joinToString(" ")
-        if (executeCommand(downloadCmd).startsWith("Error:")) {
-            Log.e(TAG, "Failed to download x11-repo/tur-repo .debs")
-            return false
-        }
-
-        val debs = pkgs.joinToString(" ") { "${it}_*.deb" }
-        if (executeCommand(
-                "cd \"${prefixDir.absolutePath}\" && dpkg --unpack $debs",
-            ).startsWith("Error:")) {
-            Log.e(TAG, "Failed to unpack x11-repo/tur-repo .debs")
-            return false
-        }
-
-        for (pkg in pkgs) {
-            val postinst = File(prefixDir, "var/lib/dpkg/info/$pkg.postinst")
-            postinst.writeText("#!/system/bin/sh\nexit 0\n")
-            postinst.setExecutable(true, false)
-        }
-
-        if (executeCommand("dpkg --configure ${pkgs.joinToString(" ")}").startsWith("Error:")) {
-            Log.e(TAG, "Failed to configure x11-repo/tur-repo")
-            return false
-        }
-
-        val refresh = executeCommand(
-            "timeout --signal=TERM --kill-after=5s 120s apt-get -o Acquire::Retries=5 update",
-        )
-        if (refresh.startsWith("Error:")) {
-            Log.w(TAG, "One repository refresh failed; installed repository metadata is preserved")
-        }
-        return true
-    }
-
+helpers = r'''
     private fun repairDpkgState(): Boolean {
         repeat(3) { attempt ->
             patchShebangs(force = true)
@@ -130,10 +67,7 @@ repo_replacement = r'''    private fun installRepoPackages(): Boolean {
             if (missing.isEmpty()) return true
 
             if (attempt < 2) {
-                executeCommand(
-                    "timeout --signal=TERM --kill-after=5s 120s " +
-                        "apt-get -o Acquire::Retries=5 update",
-                )
+                refreshCorePackageLists(onProgress)
             }
         }
 
@@ -151,17 +85,14 @@ repo_replacement = r'''    private fun installRepoPackages(): Boolean {
         return required.all { File(binDir, it).canExecute() }
     }
 
-    private fun installPackageGroup'''
-text, count = repo_pattern.subn(repo_replacement, text, count=1)
-if count != 1:
-    raise SystemExit("Could not replace repository/package recovery block")
+'''
+marker = "    private fun installPackageGroup"
+if marker not in text:
+    raise SystemExit("installPackageGroup marker missing")
+text = text.replace(marker, helpers + marker, 1)
 
 old = '''        if (!installPackageGroup("dpkg --configure -a")) {
             Log.e(TAG, "Initial dpkg --configure -a failed")
-            return false
-        }
-        if (!installPackageGroup("pkg update -y")) {
-            Log.e(TAG, "pkg update failed")
             return false
         }
 '''
@@ -169,9 +100,6 @@ new = '''        if (!repairDpkgState()) {
             onProgress?.invoke(-1.0, "Package database repair failed. Retry will resume from cached packages.")
             Log.e(TAG, "Initial dpkg recovery failed")
             return false
-        }
-        if (!installPackageGroup("pkg update -y")) {
-            Log.w(TAG, "pkg update reported an error; continuing with the last verified package lists")
         }
 '''
 if old not in text:
@@ -332,7 +260,7 @@ service.write_text(text, encoding="utf-8")
 state = root / "app/lib/state/app_state.dart"
 text = state.read_text(encoding="utf-8")
 old = "throw StateError('Native Termux package installation failed');"
-new = "throw StateError('Native Linux setup paused. Tap Retry to resume from downloaded packages.');"
+new = "throw StateError('Native Linux setup paused. Tap Retry to resum from downloaded packages.');"
 if text.count(old) < 1:
     raise SystemExit("Native setup error message changed")
 text = text.replace(old, new)
