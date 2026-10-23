@@ -25,7 +25,7 @@ if old not in text:
     raise SystemExit("Support packages block changed")
 text = text.replace(old, new, 1)
 
-old = '''        storeInstalledPackages().forEach { packageName ->
+old = r'''        storeInstalledPackages().forEach { packageName ->
             val listFile = File(prefixDir, "var/lib/dpkg/info/$packageName.list")
             if (!listFile.isFile) return@forEach
             listFile.readLines()
@@ -43,7 +43,7 @@ old = '''        storeInstalledPackages().forEach { packageName ->
                 }
         }
 '''
-new = '''        appDir.listFiles { file -> file.isFile && file.extension == "desktop" }
+new = r'''        appDir.listFiles { file -> file.isFile && file.extension == "desktop" }
             ?.forEach { source ->
                 val contents = runCatching { source.readText() }.getOrDefault("")
                 if (Regex("(?im)^NoDisplay=true\\s*${'$'}").containsMatchIn(contents)) return@forEach
@@ -88,7 +88,7 @@ runtime.write_text(text, encoding="utf-8")
 
 activity = root / "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/view/DesktopActivity.kt"
 text = activity.read_text(encoding="utf-8")
-old = '''        window.statusBarColor = Color.TRANSPARENT
+old = '''        window.stattusBarColor = Color.TRANSPARENT
         window.navigationBarColor = Color.TRANSPARENT
         window.attributes = window.attributes.apply {
 '''
@@ -110,7 +110,7 @@ text = xmain.read_text(encoding="utf-8")
 old = '''        if (lorieView == null) {
             lorieView = new LorieView(context);
         }
-'''
+''
 new = '''        if (lorieView == null) {
             lorieView = new LorieView(context);
         }
