@@ -107,18 +107,20 @@ activity.write_text(text, encoding="utf-8")
 
 xmain = root / "app/android/app/src/main/java/com/termux/x11/MainActivity.java"
 text = xmain.read_text(encoding="utf-8")
-old = '''        if (lorieView == null) {
+reload_line = "            lorieView.reloadPreferences(getPrefs());\n"
+if reload_line not in text:
+    old = '''        if (lorieView == null) {
             lorieView = new LorieView(context);
         }
 '''
-new = '''        if (lorieView == null) {
+    new = '''        if (lorieView == null) {
             lorieView = new LorieView(context);
+            lorieView.reloadPreferences(getPrefs());
         }
-        lorieView.reloadPreferences(getPrefs());
 '''
-if old not in text:
-    raise SystemExit("LorieView init block changed")
-text = text.replace(old, new, 1)
+    if old not in text:
+        raise SystemExit("LorieView init block changed")
+    text = text.replace(old, new, 1)
 xmain.write_text(text, encoding="utf-8")
 
 print("Applied DroidDesk v2.1.0 desktop integration fixes.")
