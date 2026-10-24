@@ -35,6 +35,12 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Validate v2.1 patch source
+        run: |
+          set -euxo pipefail
+          cat build/patch_v210_desktop.py.part0               build/patch_v210_desktop.py.part1               build/patch_v210_desktop.py.part2               > /tmp/patch_v210_desktop.py
+          python3 -m py_compile /tmp/patch_v210_desktop.py
+
       - name: Fetch DroidDesk Enhanced base
         run: |
           git clone --depth 1 --branch v1.0.1 https://github.com/techjarves/DroidDesk-Enhanced.git /tmp/droiddesk-next
@@ -156,8 +162,6 @@ jobs:
       - name: Apply v2.1.0 desktop integration
         run: |
           set -euxo pipefail
-          cat build/patch_v210_desktop.py.part0               build/patch_v210_desktop.py.part1               build/patch_v210_desktop.py.part2               > /tmp/patch_v210_desktop.py
-          python3 -m py_compile /tmp/patch_v210_desktop.py
           python3 /tmp/patch_v210_desktop.py /tmp/droiddesk-next
 
       - name: Validate bundled helper source
