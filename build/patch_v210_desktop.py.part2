@@ -88,7 +88,7 @@ runtime.write_text(text, encoding="utf-8")
 
 activity = root / "app/android/app/src/main/kotlin/com/orailnoor/droiddesk/view/DesktopActivity.kt"
 text = activity.read_text(encoding="utf-8")
-old = '''        window.stattusBarColor = Color.TRANSPARENT
+old = '''        window.statusBarColor = Color.TRANSPARENT
         window.navigationBarColor = Color.TRANSPARENT
         window.attributes = window.attributes.apply {
 '''
