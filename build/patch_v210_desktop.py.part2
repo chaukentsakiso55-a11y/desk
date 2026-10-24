@@ -110,7 +110,7 @@ text = xmain.read_text(encoding="utf-8")
 old = '''        if (lorieView == null) {
             lorieView = new LorieView(context);
         }
-''
+'''
 new = '''        if (lorieView == null) {
             lorieView = new LorieView(context);
         }
